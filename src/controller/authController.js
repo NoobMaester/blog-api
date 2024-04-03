@@ -37,3 +37,33 @@ const signup = async (req, res) => {
         res.status(500).json(err.message);
     }
 }
+
+//LOGIN A USER
+const login = async (req, res) => {
+    try{
+        const {email, password} = req.body;
+        if(!(email && password)){
+            return res.status(400).json('All required fields')
+        }
+
+        const user = await users.findOne({email: req.body.email});
+        
+        if(!user){
+            return res.status(400).send('User not found');
+        }
+
+        const isMatch = await bycript.compare(req.body.password, user.password);
+        if(!isMatch){
+            return res.status(400).json('Invalid password');
+        }
+        const token = signToken(user._id);
+        res.status(200).json({status: 'success', token, user});
+    } catch (err) {
+        res.status(500).json(err.message);
+    }
+}
+
+module.exports = {
+    signup,
+    login
+}
